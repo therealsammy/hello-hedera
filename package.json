@@ -1,0 +1,19 @@
+{
+  "name": "hello-hedera-js-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/therealsammy/hello-hedera.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hashgraph/sdk": "^2.18.5",
+    "dotenv": "^16.0.3"
+  }
+}
