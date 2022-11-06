@@ -7,7 +7,6 @@ const {
   ContractCreateTransaction,
   ContractFunctionParameters,
   ContractExecuteTransaction,
-  ContractExecuteTransaction,
   ContractCallQuery,
   Hbar,
 } = require("@hashgraph/sdk");
@@ -28,6 +27,7 @@ async function main() {
   );
 
   // Create a file on Hedera and store the bytecode
+
   const fileCreateTx = new FileCreateTransaction()
     .setContents(contractBytecode)
     .setKeys([operatorKey])
@@ -37,12 +37,45 @@ async function main() {
   const fileCreateSign = await fileCreateTx.sign(operatorKey);
   const fileCreateSubmit = await fileCreateSign.execute(client);
   const fileCreateRx = await fileCreateSubmit.getReceipt(client);
-  const bytecodeField = fileCreateRx.fileId;
-  bytecodeField;
+  const bytecodefileId = fileCreateRx.fileId;
+  console.log(` - The bytecode file ID is: ${bytecodefileId} \n`);
 
   // Instantiate the smart contract
 
+  const contractInstantiateTx = new ContractCreateTransaction()
+    .setByteCodeFileId(bytecodefileId)
+    .setGas(100000)
+    .setConstructorParamaters(
+      new ContractFunctionParameters().addString("Alice").addUint256(111111)
+    );
+
+  const contractInstantiateSubmit = new contractInstantiateTx.execute(client);
+  const contractInstantiateRx = await contractInstantiateSubmit.getReceipt(
+    client
+  );
+  const contractId = contractInstantiateRx.contractId;
+  const contractAddress = contractId.toSolidityAddress();
+  console.log(` - The smart contract ID is: ${contractId} \n`);
+  console.log(
+    `- The smart contract ID in solidity format is: ${contractAddress} \n`
+  );
+
   // Query the contract to check changes in state variable
+
+  const contractQueryTx = new ContractCallQuery()
+    .setContractId(contractId)
+    .setGas(100000)
+    .setFunction(
+      "getMobileNumber",
+      new ContractFunctionParameters().addString("Alice")
+    )
+    .setMaxQueryPayment(new Hbar(0.00000001));
+
+  const contractQuerySubmit = await contractQueryTx.execute(client);
+  const contractQueryResult = contractQuerySubmit.getUint256(0);
+  console.log(
+    ` - Here's the phone number you requested: ${contractQueryResult} \n`
+  );
 
   // Call contract function to update the state variable
 
