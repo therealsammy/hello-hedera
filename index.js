@@ -1,22 +1,52 @@
-const { Client } = require("@hashgraph/sdk");
+console.clear();
+const {
+  AccountId,
+  PrivateKey,
+  Client,
+  FileCreateTransaction,
+  ContractCreateTransaction,
+  ContractFunctionParameters,
+  ContractExecuteTransaction,
+  ContractExecuteTransaction,
+  ContractCallQuery,
+  Hbar,
+} = require("@hashgraph/sdk");
 require("dotenv").config();
 
+const fs = require("fs");
+
+// Configure accounts and client
+const operatorId = AccountId.fromString(process.env.MY_ACCOUNT_ID);
+const operatorKey = PrivateKey.fromString(process.env.MY_PRIVATE_KEY);
+
+const client = Client.forTestnet().setOperator(operatorId, operatorKey);
+
 async function main() {
-  //Grab your Hedera testnet account ID and private key from your .env file
-  const myAccountId = process.env.MY_ACCOUNT_ID;
-  const myPrivateKey = process.env.MY_PRIVATE_KEY;
+  // Import the compiled contract bytecode
+  const contractBytecode = fs.readFileSync(
+    "LookupContract_sol_LookupContract.bin"
+  );
 
-  // If we weren't able to grab it, we should throw a new error
-  if (myAccountId == null || myPrivateKey == null) {
-    throw new Error(
-      "Environment variables myAccountId and myPrivateKey must be present"
-    );
-  }
+  // Create a file on Hedera and store the bytecode
+  const fileCreateTx = new FileCreateTransaction()
+    .setContents(contractBytecode)
+    .setKeys([operatorKey])
+    .setMaxTransactionFee(new Hbar(0.75))
+    .freezeWith(client);
 
-  // Create our connection to the Hedera network
-  // The Hedera JS SDK makes this really easy!
-  const client = Client.forTestnet();
+  const fileCreateSign = await fileCreateTx.sign(operatorKey);
+  const fileCreateSubmit = await fileCreateSign.execute(client);
+  const fileCreateRx = await fileCreateSubmit.getReceipt(client);
+  const bytecodeField = fileCreateRx.fileId;
+  bytecodeField;
 
-  client.setOperator(myAccountId, myPrivateKey);
+  // Instantiate the smart contract
+
+  // Query the contract to check changes in state variable
+
+  // Call contract function to update the state variable
+
+  // Query the contract to check changes in state variable
 }
+
 main();
