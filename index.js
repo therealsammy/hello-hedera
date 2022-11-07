@@ -79,7 +79,35 @@ async function main() {
 
   // Call contract function to update the state variable
 
+  const contractExecuteTx = new ContractExecuteTransaction()
+    .setContractId(contractId)
+    .setGas(100000)
+    .setFunction(
+      "setMobileNumber",
+      new ContractFunctionParameters().addString("Bob").addUint256(222222)
+    )
+    .setMaxTransactionFee(new Hbar(0.75));
+
+  const contractExecuteSubmit = await contractExecuteTx.execute(client);
+  const contractExecuteRx = await contractExecuteSubmit.getReceipt(client);
+  console.log(` Contract function call status: ${contractExecuteRx.status} \n`);
+
   // Query the contract to check changes in state variable
+
+  const contractQueryTx1 = new ContractCallQuery()
+    .setContractId(contractId)
+    .setGas(100000)
+    .setFunction(
+      "getMobileNumber",
+      new ContractFunctionParameters().addString("Bob")
+    )
+    .setMaxQueryPayment(new Hbar(0.00000001));
+
+  const contractQuerySubmit1 = await contractQueryTx1.execute(client);
+  const contractQueryResult1 = contractQuerySubmit1.getUint256(0);
+  console.log(
+    ` - Here's the phone number you requested: ${contractQueryResult1} \n`
+  );
 }
 
 main();
